@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="dashboard-page" data-required-role="admin">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>權限不足或尚未登入</h1>
+      <p id="authGuardMessage">這個頁面只開放管理員帳號使用。</p>
+      <a class="primary-link" href="./index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+    <header class="dashboard-header">
+      <div>
+        <p class="dashboard-eyebrow">Admin</p>
+        <h1>系統管理員後台</h1>
+        <p id="adminEmail" class="dashboard-subtitle">Loading...</p>
+      </div>
+      <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
+    </header>
+
+    <main class="dashboard-grid admin-grid">
+      <section class="dashboard-card">
+        <div class="section-heading">
+          <div>
+            <p class="dashboard-eyebrow">Create User</p>
+            <h2>建立測試帳號</h2>
+          </div>
+        </div>
+
+        <form id="adminCreateUserForm" class="stack-form">
+          <label>
+            <span>帳號 / Email</span>
+            <input id="adminUserEmail" type="text" placeholder="student@example.com" />
+          </label>
+
+          <label>
+            <span>密碼</span>
+            <input id="adminUserPassword" type="text" placeholder="至少 6 個字" />
+          </label>
+
+          <label>
+            <span>角色</span>
+            <select id="adminUserRole" class="admin-select">
+              <option value="student">student</option>
+              <option value="teacher">teacher</option>
+            </select>
+          </label>
+
+          <button class="primary-btn" type="submit">建立帳號</button>
+        </form>
+
+        <p id="adminMessage" class="dashboard-message hidden"></p>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="section-heading">
+          <div>
+            <p class="dashboard-eyebrow">Users</p>
+            <h2>所有使用者</h2>
+          </div>
+          <button id="refreshUsersBtn" class="ghost-btn" type="button">重新整理</button>
+        </div>
+
+        <div id="adminUserList" class="admin-user-list">
+          <p class="empty-state">Loading...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

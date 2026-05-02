@@ -1,0 +1,177 @@
+.auth-page {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(224 242 254), white 48%, rgb(224 231 255));
+  color: rgb(15 23 42);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.auth-card {
+  background: rgb(255 255 255 / 0.94);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 0.16);
+  max-width: 460px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.auth-hero {
+  background: linear-gradient(135deg, rgb(14 165 233), rgb(79 70 229));
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.auth-eyebrow {
+  color: rgb(224 242 254);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.auth-hero h1 {
+  font-size: 1.65rem;
+  font-weight: 900;
+  margin: 0.4rem 0 0;
+}
+
+.auth-hero p:last-child {
+  color: rgb(224 242 254);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0.5rem auto 0;
+  max-width: 20rem;
+}
+
+.auth-panel {
+  padding: 1.5rem;
+}
+
+.mode-tabs,
+.role-tabs {
+  background: rgb(241 245 249);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.35rem;
+}
+
+.mode-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.role-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.85rem;
+}
+
+.mode-tab,
+.role-tab {
+  border: 0;
+  border-radius: 0.8rem;
+  color: rgb(71 85 105);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 900;
+  padding: 0.7rem 0.75rem;
+}
+
+.mode-tab.is-active,
+.role-tab.is-active {
+  background: white;
+  box-shadow: 0 1px 8px rgb(15 23 42 / 0.08);
+  color: rgb(2 132 199);
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.auth-form label span {
+  color: rgb(51 65 85);
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.auth-form input {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.9rem;
+  outline: none;
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+}
+
+.auth-form input:focus {
+  border-color: rgb(14 165 233);
+  box-shadow: 0 0 0 4px rgb(186 230 253 / 0.6);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 3.8rem;
+}
+
+.password-field button {
+  color: rgb(2 132 199);
+  font-size: 0.75rem;
+  font-weight: 900;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.field-error {
+  color: rgb(225 29 72);
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.auth-submit {
+  background: rgb(15 23 42);
+  border: 0;
+  border-radius: 0.9rem;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 900;
+  padding: 0.85rem;
+}
+
+.auth-submit:hover {
+  background: rgb(30 41 59);
+}
+
+.form-message {
+  border-radius: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  padding: 0.75rem 0.85rem;
+}
+
+.form-message.is-success {
+  background: rgb(209 250 229);
+  color: rgb(6 95 70);
+}
+
+.form-message.is-error {
+  background: rgb(255 228 230);
+  color: rgb(159 18 57);
+}

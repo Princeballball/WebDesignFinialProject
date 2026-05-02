@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dashboard-page" data-required-role="teacher" data-allowed-roles="teacher admin">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>權限不足或尚未登入</h1>
+      <p id="authGuardMessage">這個頁面只開放教師帳號使用。</p>
+      <a class="primary-link" href="./index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+  <header class="dashboard-header">
+    <div>
+      <p id="teacherRoleLabel" class="dashboard-eyebrow">Teacher</p>
+      <h1 id="teacherPageTitle">教師教室管理</h1>
+      <p id="teacherEmail" class="dashboard-subtitle">Loading...</p>
+    </div>
+    <div class="dashboard-actions">
+      <a id="adminConsoleBtn" class="primary-link hidden" href="./dashboard_admin.html">系統後台</a>
+      <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
+    </div>
+  </header>
+
+  <main class="dashboard-grid">
+    <section class="dashboard-card">
+      <div class="section-heading">
+        <div>
+          <p class="dashboard-eyebrow">Create</p>
+          <h2>建立教室</h2>
+        </div>
+      </div>
+      <form id="createClassroomForm" class="stack-form">
+        <label>
+          <span>教室名稱</span>
+          <input id="classroomNameInput" type="text" placeholder="例如：資料結構 A 班" />
+        </label>
+        <label>
+          <span>課程名稱（可選）</span>
+          <input id="courseNameInput" type="text" placeholder="例如：排序演算法入門" />
+        </label>
+        <button class="primary-btn" type="submit">建立教室</button>
+      </form>
+      <p id="teacherMessage" class="dashboard-message hidden"></p>
+    </section>
+
+    <section class="dashboard-card">
+      <div class="section-heading">
+        <div>
+          <p class="dashboard-eyebrow">Classrooms</p>
+          <h2>我的教室</h2>
+        </div>
+      </div>
+      <div id="teacherClassroomList" class="class-list"></div>
+    </section>
+
+    <section class="dashboard-card">
+      <div class="section-heading">
+        <div>
+          <p class="dashboard-eyebrow">Students</p>
+          <h2 id="studentPanelTitle">學生名單</h2>
+        </div>
+      </div>
+      <div id="classStudentList" class="student-list empty-state">請先選擇一個教室。</div>
+    </section>
+  </main>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/classroom.js"></script>
+</body>
+</html>

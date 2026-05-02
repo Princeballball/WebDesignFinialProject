@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dashboard-page" data-required-role="student">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>請先登入後再使用學生學習中心</h1>
+      <p id="authGuardMessage">這個頁面只開放學生帳號使用。</p>
+      <a class="primary-link" href="./index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+  <header class="dashboard-header">
+    <div>
+      <p class="dashboard-eyebrow">Student</p>
+      <h1>學生學習中心</h1>
+      <p id="studentEmail" class="dashboard-subtitle">Loading...</p>
+    </div>
+    <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
+  </header>
+
+  <main class="dashboard-grid">
+    <section class="dashboard-card">
+      <div class="section-heading">
+        <div>
+          <p class="dashboard-eyebrow">Classroom</p>
+          <h2>加入教室</h2>
+        </div>
+      </div>
+      <form id="joinClassroomForm" class="inline-form">
+        <input id="classCodeInput" type="text" placeholder="輸入 classCode，例如 ABC123" maxlength="8" />
+        <button class="primary-btn" type="submit">加入</button>
+      </form>
+      <p id="studentMessage" class="dashboard-message hidden"></p>
+    </section>
+
+    <section class="dashboard-card">
+      <div class="section-heading">
+        <div>
+          <p class="dashboard-eyebrow">My Classes</p>
+          <h2>已加入教室</h2>
+        </div>
+      </div>
+      <div id="studentClassroomList" class="class-list"></div>
+    </section>
+
+    <section class="dashboard-card feature-card">
+      <div>
+        <p class="dashboard-eyebrow">Practice</p>
+        <h2>排序視覺化與 Quiz</h2>
+        <p>進入工具頁後可以觀看排序動畫，並完成對應演算法測驗。</p>
+      </div>
+      <a class="primary-link" href="../homepage.html">開始練習</a>
+    </section>
+  </main>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/classroom.js"></script>
+</body>
+</html>

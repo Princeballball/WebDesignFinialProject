@@ -1,0 +1,27 @@
+<section id="quizSection" class="quiz-shell shrink-0">
+  <button id="quizToggle" class="quiz-toggle" type="button" aria-expanded="false">
+    <span>
+      <span class="quiz-eyebrow">Quiz</span>
+      <span class="quiz-title">排序觀念測驗</span>
+    </span>
+    <span id="quizToggleIcon" class="quiz-toggle-icon">+</span>
+  </button>
+
+  <div id="quizPanel" class="quiz-panel is-hidden">
+    <div class="quiz-meta">
+      <span id="quizAlgorithmLabel">Bubble Sort 題庫</span>
+      <span id="quizProgress">1 / 1</span>
+      <span id="quizScore">Score: 0</span>
+    </div>
+
+    <h2 id="quizQuestion" class="quiz-question">Loading question...</h2>
+    <div id="quizOptions" class="quiz-options" role="radiogroup" aria-label="Quiz options"></div>
+
+    <div id="quizFeedback" class="quiz-feedback is-hidden" aria-live="polite"></div>
+
+    <div class="quiz-actions">
+      <button id="quizSubmitBtn" class="quiz-primary-btn" type="button">送出答案</button>
+      <button id="quizNextBtn" class="quiz-secondary-btn" type="button">下一題</button>
+    </div>
+  </div>
+</section>
