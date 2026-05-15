@@ -3,6 +3,7 @@ const path = require("path");
 const { seedDefaultAdmin } = require("./storage");
 const authRoutes = require("./authRoutes");
 const adminRoutes = require("./adminRoutes");
+const assignmentRoutes = require("./assignmentRoutes");
 const classroomRoutes = require("./classroomRoutes");
 const quizRoutes = require("./quizRoutes");
 
@@ -15,6 +16,7 @@ app.use(express.static(rootDir));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/assignments", assignmentRoutes);
 app.use("/api/classrooms", classroomRoutes);
 app.use("/api/quiz-results", quizRoutes);
 

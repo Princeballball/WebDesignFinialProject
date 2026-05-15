@@ -59,6 +59,12 @@
           <h2>我的教室</h2>
         </div>
       </div>
+      <label class="stack-form classroom-picker">
+        <span>選擇教室</span>
+        <select id="teacherClassroomSelect">
+          <option value="">請先建立或選擇教室</option>
+        </select>
+      </label>
       <div id="teacherClassroomList" class="class-list"></div>
     </section>
 
@@ -70,6 +76,15 @@
         </div>
       </div>
       <div id="classStudentList" class="student-list empty-state">請先選擇一個教室。</div>
+    </section>
+
+    <section class="dashboard-card feature-card">
+      <div>
+        <p class="dashboard-eyebrow">Assignments</p>
+        <h2 id="assignmentPanelTitle">作業指派與成績</h2>
+        <p>到獨立頁面指派作業、修改作業、查看學生分數與題目答對率。</p>
+      </div>
+      <a id="teacherAssignmentsLink" class="primary-link is-disabled" href="./teacher_assignments.html">管理作業</a>
     </section>
   </main>
   </div>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作業與成績管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dashboard-page" data-required-role="teacher" data-allowed-roles="teacher admin">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>權限不足或尚未登入</h1>
+      <p id="authGuardMessage">這個頁面只開放教師帳號使用。</p>
+      <a class="primary-link" href="./index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+    <header class="dashboard-header">
+      <div>
+        <p class="dashboard-eyebrow">Assignments</p>
+        <h1>作業與成績管理</h1>
+        <p id="teacherAssignmentMeta" class="dashboard-subtitle">Loading...</p>
+      </div>
+      <div class="dashboard-actions">
+        <a class="ghost-btn" href="./dashboard_teacher.html">返回教師中心</a>
+        <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
+      </div>
+    </header>
+
+    <main class="dashboard-grid assignment-management-grid">
+      <section class="dashboard-card">
+        <div class="section-heading">
+          <div>
+            <p class="dashboard-eyebrow">Create / Edit</p>
+            <h2 id="assignmentFormTitle">指派作業</h2>
+          </div>
+        </div>
+
+        <form id="teacherAssignmentForm" class="stack-form assignment-form">
+          <input id="editingAssignmentId" type="hidden" />
+          <label>
+            <span>作業名稱</span>
+            <input id="assignmentTitleInput" type="text" placeholder="例如：Bubble Sort 小測驗" />
+          </label>
+          <label>
+            <span>演算法</span>
+            <select id="assignmentAlgorithmInput">
+              <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="insertion">Insertion Sort</option>
+            </select>
+          </label>
+          <label>
+            <span>截止日期</span>
+            <input id="assignmentDueDateInput" type="date" />
+          </label>
+          <div class="dashboard-actions">
+            <button id="assignmentSubmitBtn" class="primary-btn" type="submit">指派作業</button>
+            <button id="cancelEditAssignmentBtn" class="ghost-btn hidden" type="button">取消修改</button>
+          </div>
+        </form>
+        <p id="teacherAssignmentMessage" class="dashboard-message hidden"></p>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="section-heading">
+          <div>
+            <p class="dashboard-eyebrow">Classroom</p>
+            <h2 id="assignmentClassroomTitle">教室</h2>
+          </div>
+        </div>
+        <div id="assignmentClassroomSummary" class="class-list"></div>
+      </section>
+
+      <section class="dashboard-card feature-card">
+        <div>
+          <p class="dashboard-eyebrow">Reports</p>
+          <h2>作業列表與成績分析</h2>
+          <p>查看繳交狀態、平均分數、最高分、題目答對率與學生分數。</p>
+        </div>
+        <div id="teacherAssignmentPanel" class="assignment-panel"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../quizData.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/teacherAssignments.js"></script>
+</body>
+</html>

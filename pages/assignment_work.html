@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作業作答</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/assignment.css" />
+</head>
+<body class="assignment-page" data-required-role="student">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>請先登入後再作答</h1>
+      <p id="authGuardMessage">這個頁面只開放學生帳號使用。</p>
+      <a class="primary-link" href="../index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+    <header class="assignment-header">
+      <div>
+        <p class="dashboard-eyebrow">Homework</p>
+        <h1 id="assignmentTitle">作業作答</h1>
+        <p id="assignmentMeta" class="dashboard-subtitle">Loading...</p>
+      </div>
+      <a class="ghost-btn" href="./dashboard_student.html">返回學生中心</a>
+    </header>
+
+    <main class="assignment-layout">
+      <section class="assignment-main">
+        <div id="assignmentSummary" class="assignment-summary"></div>
+        <form id="assignmentForm" class="assignment-question-list"></form>
+      </section>
+
+      <aside class="assignment-sidebar">
+        <h2>測驗導覽</h2>
+        <div id="questionNavigator" class="question-navigator"></div>
+        <button id="submitAssignmentBtn" class="primary-btn" type="button">送出作業</button>
+        <p id="assignmentMessage" class="dashboard-message hidden"></p>
+      </aside>
+    </main>
+  </div>
+
+  <script src="../quizData.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/assignmentWork.js"></script>
+</body>
+</html>

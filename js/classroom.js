@@ -1,6 +1,8 @@
 (function () {
   const LOCAL_CLASSROOMS_KEY = "sortVisualizerLocalClassrooms";
   const LOCAL_USERS_KEY = "sortVisualizerLocalUsers";
+  const LOCAL_ASSIGNMENTS_KEY = "sortVisualizerLocalAssignments";
+  const LOCAL_ASSIGNMENT_SUBMISSIONS_KEY = "sortVisualizerLocalAssignmentSubmissions";
 
   let teacherSession = null;
   let selectedClassroomId = "";
@@ -33,6 +35,22 @@
 
   function getLocalUsers() {
     return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
+  }
+
+  function getLocalAssignments() {
+    return JSON.parse(localStorage.getItem(LOCAL_ASSIGNMENTS_KEY) || "[]");
+  }
+
+  function saveLocalAssignments(assignments) {
+    localStorage.setItem(LOCAL_ASSIGNMENTS_KEY, JSON.stringify(assignments));
+  }
+
+  function getLocalAssignmentSubmissions() {
+    return JSON.parse(localStorage.getItem(LOCAL_ASSIGNMENT_SUBMISSIONS_KEY) || "[]");
+  }
+
+  function saveLocalAssignmentSubmissions(submissions) {
+    localStorage.setItem(LOCAL_ASSIGNMENT_SUBMISSIONS_KEY, JSON.stringify(submissions));
   }
 
   function normalizeClassroom(classroom) {
@@ -151,6 +169,138 @@
 
       return { classroom, students, quizResults: [], source: "local" };
     }
+  }
+
+  async function loadAssignments(user, classroomId = "") {
+    try {
+      const query = new URLSearchParams({
+        userId: user.id,
+        role: user.role,
+      });
+
+      if (classroomId) {
+        query.set("classroomId", classroomId);
+      }
+
+      return await requestJson(`/api/assignments?${query.toString()}`);
+    } catch (error) {
+      if (error.isHttpError) {
+        throw error;
+      }
+
+      const classrooms = getLocalClassrooms();
+      const submissions = getLocalAssignmentSubmissions();
+      let assignments = getLocalAssignments();
+
+      if (classroomId) {
+        assignments = assignments.filter((assignment) => assignment.classroomId === classroomId);
+      }
+
+      if (user.role === "student") {
+        const joinedClassIds = classrooms
+          .filter((classroom) => classroom.students.includes(user.id))
+          .map((classroom) => classroom.id);
+        assignments = assignments.filter((assignment) => joinedClassIds.includes(assignment.classroomId));
+      } else if (user.role === "teacher") {
+        assignments = assignments.filter((assignment) => {
+          const classroom = classrooms.find((item) => item.id === assignment.classroomId);
+          return classroom && classroom.teacherId === user.id;
+        });
+      }
+
+      return {
+        assignments: assignments.map((assignment) => ({
+          ...assignment,
+          submissions: submissions.filter((submission) => submission.assignmentId === assignment.id),
+        })),
+        source: "local",
+      };
+    }
+  }
+
+  async function createAssignment({ requesterId, classroomId, title, algorithm, dueDate }) {
+    try {
+      return await requestJson("/api/assignments", {
+        method: "POST",
+        body: JSON.stringify({
+          requesterId,
+          classroomId,
+          title,
+          algorithm,
+          dueDate,
+        }),
+      });
+    } catch (error) {
+      if (error.isHttpError) {
+        throw error;
+      }
+
+      const classroom = getLocalClassrooms().find((item) => item.id === classroomId);
+
+      if (!classroom || !canManageLocalClassroom(teacherSession, classroom)) {
+        throw new Error("沒有權限指派此教室的作業。");
+      }
+
+      const assignment = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        classroomId,
+        title,
+        algorithm,
+        dueDate,
+        teacherId: classroom.teacherId,
+        createdAt: new Date().toISOString(),
+      };
+
+      saveLocalAssignments([...getLocalAssignments(), assignment]);
+      return { assignment, source: "local" };
+    }
+  }
+
+  async function submitAssignment({ assignmentId, studentId, score, total, answers }) {
+    try {
+      return await requestJson(`/api/assignments/${assignmentId}/submissions`, {
+        method: "POST",
+        body: JSON.stringify({
+          studentId,
+          score,
+          total,
+          answers,
+        }),
+      });
+    } catch (error) {
+      if (error.isHttpError) {
+        throw error;
+      }
+
+      const submission = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        assignmentId,
+        studentId,
+        score,
+        total,
+        answers,
+        submittedAt: new Date().toISOString(),
+      };
+      const submissions = getLocalAssignmentSubmissions().filter(
+        (item) => !(item.assignmentId === assignmentId && item.studentId === studentId),
+      );
+      saveLocalAssignmentSubmissions([...submissions, submission]);
+      return { submission, source: "local" };
+    }
+  }
+
+  function getAssignmentQuestions(algorithm) {
+    return (window.SortVisualizerQuizData || [])
+      .filter((question) => question.algorithm === algorithm)
+      .slice(0, 2);
+  }
+
+  function formatDueDate(dueDate) {
+    return dueDate ? `截止日期：${dueDate}` : "沒有截止日期";
+  }
+
+  function isAssignmentPastDue(assignment) {
+    return assignment.dueDate && new Date() > new Date(`${assignment.dueDate}T23:59:59`);
   }
 
   async function addStudentToClassroom(classroomId) {
@@ -292,23 +442,85 @@
 
   async function renderTeacherClassrooms() {
     const list = document.getElementById("teacherClassroomList");
+    const select = document.getElementById("teacherClassroomSelect");
 
     try {
       const { classrooms } = await loadClassrooms(teacherSession);
+      renderTeacherClassroomSelect(select, classrooms);
       renderClassrooms(list, classrooms, true);
     } catch (error) {
       list.innerHTML = `<p class="empty-state">無法載入教室資料：${error.message}</p>`;
     }
   }
 
+  function renderTeacherClassroomSelect(select, classrooms) {
+    if (!select) {
+      return;
+    }
+
+    if (!classrooms.length) {
+      select.innerHTML = `<option value="">目前沒有教室，請先建立教室</option>`;
+      select.disabled = true;
+      return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = `
+      <option value="">請選擇教室</option>
+      ${classrooms.map((classroom) => `
+        <option value="${classroom.id}" ${classroom.id === selectedClassroomId ? "selected" : ""}>
+          ${classroom.name} (${classroom.classCode})
+        </option>
+      `).join("")}
+    `;
+  }
+
   async function selectClassroom(classroomId) {
     selectedClassroomId = classroomId;
-    const { classrooms } = await loadClassrooms(teacherSession);
-    const classroom = classrooms.find((item) => item.id === classroomId);
+    localStorage.setItem("activeTeacherClassroomId", classroomId);
     const studentPanelTitle = document.getElementById("studentPanelTitle");
+    const assignmentPanelTitle = document.getElementById("assignmentPanelTitle");
     const studentsContainer = document.getElementById("classStudentList");
+    const assignmentLink = document.getElementById("teacherAssignmentsLink");
+    const select = document.getElementById("teacherClassroomSelect");
+
+    if (!classroomId) {
+      localStorage.removeItem("activeTeacherClassroomId");
+      studentPanelTitle.textContent = "學生名單";
+      assignmentPanelTitle.textContent = "作業指派與成績";
+      studentsContainer.classList.add("empty-state");
+      studentsContainer.innerHTML = "請先選擇一個教室。";
+      if (assignmentLink) {
+        assignmentLink.classList.add("is-disabled");
+        assignmentLink.href = "./teacher_assignments.html";
+      }
+      return;
+    }
+
+    let classrooms = [];
+    let classroom;
+
+    try {
+      const response = await loadClassrooms(teacherSession);
+      classrooms = response.classrooms;
+      classroom = classrooms.find((item) => item.id === classroomId);
+    } catch (error) {
+      studentsContainer.innerHTML = `<p class="empty-state">無法選擇教室：${error.message}</p>`;
+      return;
+    }
+
+    renderTeacherClassroomSelect(select, classrooms);
+
+    if (select) {
+      select.value = classroomId;
+    }
 
     studentPanelTitle.textContent = classroom ? `${classroom.name} 學生名單` : "學生名單";
+    assignmentPanelTitle.textContent = classroom ? `${classroom.name} 作業與成績` : "作業指派與成績";
+    if (assignmentLink) {
+      assignmentLink.classList.remove("is-disabled");
+      assignmentLink.href = `./teacher_assignments.html?classroomId=${classroomId}`;
+    }
     studentsContainer.classList.remove("empty-state");
     studentsContainer.innerHTML = `
       <form id="teacherAddStudentForm" class="inline-form student-add-form">
@@ -316,7 +528,23 @@
         <button class="primary-btn" type="submit">加入學生</button>
       </form>
       <p id="teacherStudentMessage" class="dashboard-message hidden"></p>
-      <div id="teacherStudentRows" class="student-list"></div>
+      <section class="student-list-panel">
+        <button
+          id="teacherStudentToggle"
+          class="student-list-toggle"
+          type="button"
+          data-toggle-students
+          aria-expanded="false"
+          aria-controls="teacherStudentRows"
+        >
+          <span>
+            <strong>學生名單</strong>
+            <small id="teacherStudentCount">0 位學生</small>
+          </span>
+          <span id="teacherStudentToggleText">展開</span>
+        </button>
+        <div id="teacherStudentRows" class="student-list hidden" data-expanded="false"></div>
+      </section>
     `;
 
     document.getElementById("teacherAddStudentForm").addEventListener("submit", (event) => {
@@ -329,6 +557,8 @@
 
   async function renderStudents(classroomId) {
     const rows = document.getElementById("teacherStudentRows");
+    const toggle = document.getElementById("teacherStudentToggle");
+    const countLabel = document.getElementById("teacherStudentCount");
 
     if (!rows) {
       return;
@@ -336,6 +566,7 @@
 
     try {
       const { students, quizResults } = await loadClassroomStudents(classroomId);
+      updateStudentListToggle(students.length);
 
       if (!students.length) {
         rows.innerHTML = `<p class="empty-state">這個教室目前還沒有學生。</p>`;
@@ -360,6 +591,258 @@
       });
     } catch (error) {
       rows.innerHTML = `<p class="empty-state">無法載入學生資料：${error.message}</p>`;
+      if (toggle) {
+        toggle.disabled = false;
+      }
+      if (countLabel) {
+        countLabel.textContent = "載入失敗";
+      }
+    }
+  }
+
+  function updateStudentListToggle(studentCount) {
+    const rows = document.getElementById("teacherStudentRows");
+    const toggle = document.getElementById("teacherStudentToggle");
+    const toggleText = document.getElementById("teacherStudentToggleText");
+    const countLabel = document.getElementById("teacherStudentCount");
+
+    if (!rows || !toggle) {
+      return;
+    }
+
+    const isExpanded = rows.dataset.expanded === "true";
+    rows.classList.toggle("hidden", !isExpanded);
+    toggle.setAttribute("aria-expanded", String(isExpanded));
+    if (toggleText) {
+      toggleText.textContent = isExpanded ? "收合" : "展開";
+    }
+    toggle.disabled = false;
+
+    if (countLabel) {
+      countLabel.textContent = `${studentCount} 位學生`;
+    }
+  }
+
+  function toggleStudentList() {
+    const rows = document.getElementById("teacherStudentRows");
+
+    if (!rows) {
+      return;
+    }
+
+    rows.dataset.expanded = rows.dataset.expanded === "true" ? "false" : "true";
+    updateStudentListToggle(rows.querySelectorAll(".student-item").length);
+  }
+
+  async function renderTeacherAssignments(classroomId) {
+    const panel = document.getElementById("teacherAssignmentPanel");
+
+    if (!panel) {
+      return;
+    }
+
+    try {
+      const { assignments } = await loadAssignments(teacherSession, classroomId);
+      const { students } = await loadClassroomStudents(classroomId);
+
+      const assignmentRows = assignments.length
+        ? assignments.map((assignment) => {
+          const submissions = assignment.submissions || [];
+          const submittedCount = submissions.length;
+          const totalStudents = students.length;
+          const averageScore = submittedCount
+            ? (submissions.reduce((sum, submission) => sum + Number(submission.score || 0), 0) / submittedCount).toFixed(1)
+            : "0";
+          const maxTotal = submissions[0] ? submissions[0].total : getAssignmentQuestions(assignment.algorithm).length;
+          const bestScore = submittedCount
+            ? Math.max(...submissions.map((submission) => Number(submission.score || 0)))
+            : 0;
+          const questionStats = buildQuestionStats(assignment, submissions);
+          const studentRows = students.length
+            ? students.map((student) => {
+              const submission = submissions.find((item) => item.studentId === student.id);
+
+              if (!submission) {
+                return `
+                  <article class="grade-row">
+                    <div>
+                      <h4>${student.email}</h4>
+                      <p>尚未繳交</p>
+                    </div>
+                    <span class="class-code">未交</span>
+                  </article>
+                `;
+              }
+
+              return `
+                <article class="grade-row">
+                  <div>
+                    <h4>${student.email}</h4>
+                    <p>送出時間：${submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : "未記錄"}</p>
+                  </div>
+                  <span class="assignment-score">${submission.score}/${submission.total}</span>
+                </article>
+              `;
+            }).join("")
+            : `<p class="empty-state">此教室尚未加入學生。</p>`;
+
+          return `
+            <article class="assignment-item">
+              <div class="assignment-grade-card">
+                <h3>${assignment.title}</h3>
+                <p>Algorithm: ${assignment.algorithm}</p>
+                <p>${formatDueDate(assignment.dueDate)}</p>
+                <div class="grade-summary-grid">
+                  <div>
+                    <span>繳交狀態</span>
+                    <strong>${submittedCount}/${totalStudents}</strong>
+                  </div>
+                  <div>
+                    <span>平均分數</span>
+                    <strong>${averageScore}/${maxTotal}</strong>
+                  </div>
+                  <div>
+                    <span>最高分</span>
+                    <strong>${bestScore}/${maxTotal}</strong>
+                  </div>
+                </div>
+                <div class="question-accuracy">
+                  <h4>題目答對率</h4>
+                  ${questionStats}
+                </div>
+                <div class="assignment-results">
+                  <h4>學生分數</h4>
+                  ${studentRows}
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("")
+        : `<p class="empty-state">尚未指派作業。</p>`;
+
+      panel.classList.remove("empty-state");
+      panel.innerHTML = `
+        <form id="teacherAssignmentForm" class="stack-form assignment-form">
+          <label>
+            <span>作業名稱</span>
+            <input id="assignmentTitleInput" type="text" placeholder="例如：Bubble Sort 小測驗" />
+          </label>
+          <label>
+            <span>演算法</span>
+            <select id="assignmentAlgorithmInput" class="admin-select">
+              <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="insertion">Insertion Sort</option>
+            </select>
+          </label>
+          <label>
+            <span>截止日期</span>
+            <input id="assignmentDueDateInput" type="date" />
+          </label>
+          <button class="primary-btn" type="submit">指派作業</button>
+        </form>
+        <p id="teacherAssignmentMessage" class="dashboard-message hidden"></p>
+        <div class="assignment-list">${assignmentRows}</div>
+      `;
+
+      document.getElementById("teacherAssignmentForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const titleInput = document.getElementById("assignmentTitleInput");
+        const algorithmInput = document.getElementById("assignmentAlgorithmInput");
+        const dueDateInput = document.getElementById("assignmentDueDateInput");
+        const message = document.getElementById("teacherAssignmentMessage");
+        const title = titleInput.value.trim();
+
+        if (!title) {
+          setMessage(message, "請輸入作業名稱。", "error");
+          return;
+        }
+
+        try {
+          await createAssignment({
+            requesterId: teacherSession.id,
+            classroomId,
+            title,
+            algorithm: algorithmInput.value,
+            dueDate: dueDateInput.value,
+          });
+          setMessage(message, "作業已指派。");
+          await renderTeacherAssignments(classroomId);
+        } catch (error) {
+          setMessage(message, error.message, "error");
+        }
+      });
+    } catch (error) {
+      panel.innerHTML = `<p class="empty-state">無法載入作業：${error.message}</p>`;
+    }
+  }
+
+  function buildQuestionStats(assignment, submissions) {
+    const questions = getAssignmentQuestions(assignment.algorithm);
+
+    if (!questions.length) {
+      return `<p class="empty-state">目前沒有題目資料。</p>`;
+    }
+
+    return questions.map((question, index) => {
+      const answered = submissions.filter((submission) => submission.answers && submission.answers[index]);
+      const correct = answered.filter((submission) => submission.answers[index].isCorrect).length;
+      const rate = answered.length ? Math.round((correct / answered.length) * 100) : 0;
+
+      return `
+        <div class="accuracy-row">
+          <span>第 ${index + 1} 題</span>
+          <div class="accuracy-bar">
+            <span style="width: ${rate}%"></span>
+          </div>
+          <strong>${rate}%</strong>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function renderStudentAssignments(session) {
+    const list = document.getElementById("studentAssignmentList");
+
+    if (!list) {
+      return;
+    }
+
+    try {
+      const { assignments } = await loadAssignments(session);
+      const classrooms = getLocalClassrooms();
+
+      if (!assignments.length) {
+        list.innerHTML = `<p class="empty-state">目前沒有作業。</p>`;
+        return;
+      }
+
+      list.innerHTML = "";
+      assignments.forEach((assignment) => {
+        const classroom = classrooms.find((item) => item.id === assignment.classroomId);
+        const ownSubmission = (assignment.submissions || []).find((submission) => submission.studentId === session.id);
+        const pastDue = isAssignmentPastDue(assignment);
+        const item = document.createElement("article");
+        item.className = "assignment-item";
+        item.innerHTML = `
+          <div>
+            <h3>${assignment.title}</h3>
+            <p>${classroom ? classroom.name : "Classroom"} · ${assignment.algorithm}</p>
+            <p>${formatDueDate(assignment.dueDate)}</p>
+            ${
+              ownSubmission
+                ? `<span class="assignment-score">已完成 ${ownSubmission.score}/${ownSubmission.total}</span>`
+                : `<span class="class-code">${pastDue ? "已截止" : "未完成"}</span>`
+            }
+          </div>
+          <a class="primary-link ${pastDue && !ownSubmission ? "is-disabled" : ""}" href="./assignment_work.html?id=${assignment.id}">
+            ${ownSubmission ? "重新作答" : "開始作答"}
+          </a>
+        `;
+        list.appendChild(item);
+      });
+    } catch (error) {
+      list.innerHTML = `<p class="empty-state">無法載入作業：${error.message}</p>`;
     }
   }
 
@@ -420,6 +903,7 @@
     });
 
     refresh();
+    renderStudentAssignments(session);
   }
 
   function initTeacherDashboard() {
@@ -428,6 +912,7 @@
     const nameInput = document.getElementById("classroomNameInput");
     const courseInput = document.getElementById("courseNameInput");
     const list = document.getElementById("teacherClassroomList");
+    const classroomSelect = document.getElementById("teacherClassroomSelect");
     const studentsContainer = document.getElementById("classStudentList");
     const message = document.getElementById("teacherMessage");
     const adminConsoleBtn = document.getElementById("adminConsoleBtn");
@@ -472,10 +957,16 @@
         nameInput.value = "";
         courseInput.value = "";
         setMessage(message, `已建立教室，classCode：${classroom.classCode}`);
+        selectedClassroomId = classroom.id;
         await renderTeacherClassrooms();
+        await selectClassroom(classroom.id);
       } catch (error) {
         setMessage(message, error.message, "error");
       }
+    });
+
+    classroomSelect.addEventListener("change", async (event) => {
+      await selectClassroom(event.target.value);
     });
 
     list.addEventListener("click", async (event) => {
@@ -489,6 +980,13 @@
     });
 
     studentsContainer.addEventListener("click", async (event) => {
+      const toggleButton = event.target.closest("[data-toggle-students]");
+
+      if (toggleButton) {
+        toggleStudentList();
+        return;
+      }
+
       const button = event.target.closest("[data-remove-student]");
 
       if (!button) {
@@ -511,6 +1009,11 @@
     renderStudents,
     addStudentToClassroom,
     removeStudentFromClassroom,
+    loadAssignments,
+    createAssignment,
+    submitAssignment,
+    renderTeacherAssignments,
+    renderStudentAssignments,
   };
 
   initStudentDashboard();

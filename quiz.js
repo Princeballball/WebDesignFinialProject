@@ -179,6 +179,10 @@
       return;
     }
 
+    if (!confirm("確定要送出這題答案嗎？送出後會立即顯示正確答案與解析。")) {
+      return;
+    }
+
     const result = submitQuizAnswer(question, state.selectedAnswer);
     state.answered = true;
 

@@ -7,6 +7,8 @@ const initialData = {
   users: [],
   classrooms: [],
   quizResults: [],
+  assignments: [],
+  assignmentSubmissions: [],
 };
 
 async function ensureDb() {
