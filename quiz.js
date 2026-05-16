@@ -17,12 +17,18 @@
     bubble: "Bubble Sort",
     selection: "Selection Sort",
     insertion: "Insertion Sort",
+    quick: "Quick Sort",
+    merge: "Merge Sort",
+    heap: "Heap Sort",
   };
 
   const apiAlgorithmNames = {
     bubble: "BubbleSort",
     selection: "SelectionSort",
     insertion: "InsertionSort",
+    quick: "QuickSort",
+    merge: "MergeSort",
+    heap: "HeapSort",
   };
 
   const state = {

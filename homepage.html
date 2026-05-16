@@ -18,9 +18,18 @@
             選擇演算法、調整資料量與速度，直接在同一頁觀看排序過程。
           </p>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
-          <span class="font-semibold text-slate-500">Status</span>
-          <span id="statusText" class="ml-2 font-bold text-slate-900">準備開始</span>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <a
+            id="backHomeLink"
+            class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 shadow-sm transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700"
+            href="./pages/dashboard_student.html"
+          >
+            返回首頁
+          </a>
+          <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
+            <span class="font-semibold text-slate-500">Status</span>
+            <span id="statusText" class="ml-2 font-bold text-slate-900">準備開始</span>
+          </div>
         </div>
       </div>
     </header>
@@ -36,6 +45,15 @@
         <button class="algo-card rounded-2xl border px-4 py-2.5 text-sm font-bold transition" data-algo="insertion" type="button">
           Insertion Sort
         </button>
+        <button class="algo-card rounded-2xl border px-4 py-2.5 text-sm font-bold transition" data-algo="quick" type="button">
+          Quick Sort
+        </button>
+        <button class="algo-card rounded-2xl border px-4 py-2.5 text-sm font-bold transition" data-algo="merge" type="button">
+          Merge Sort
+        </button>
+        <button class="algo-card rounded-2xl border px-4 py-2.5 text-sm font-bold transition" data-algo="heap" type="button">
+          Heap Sort
+        </button>
       </div>
 
       <div class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr_0.9fr_auto] xl:items-end">
@@ -48,6 +66,9 @@
             <option value="bubble">Bubble Sort</option>
             <option value="selection">Selection Sort</option>
             <option value="insertion">Insertion Sort</option>
+            <option value="quick">Quick Sort</option>
+            <option value="merge">Merge Sort</option>
+            <option value="heap">Heap Sort</option>
           </select>
         </label>
 

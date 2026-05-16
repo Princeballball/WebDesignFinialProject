@@ -268,8 +268,11 @@
     const roleInput = document.getElementById("role");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
+    const confirmPasswordGroup = document.getElementById("confirmPasswordGroup");
+    const confirmPassword = document.getElementById("confirmPassword");
     const emailError = document.getElementById("emailError");
     const passwordError = document.getElementById("passwordError");
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
     const togglePassword = document.getElementById("togglePassword");
     const submitBtn = document.getElementById("submitBtn");
     const formMessage = document.getElementById("formMessage");
@@ -287,6 +290,17 @@
       submitBtn.textContent = `${modeText}${roleText}帳號`;
     }
 
+    function updateModeFields() {
+      const isRegister = authMode.value === "register";
+      confirmPasswordGroup.classList.toggle("hidden", !isRegister);
+      password.autocomplete = isRegister ? "new-password" : "current-password";
+
+      if (!isRegister) {
+        confirmPassword.value = "";
+        confirmPasswordError.classList.add("hidden");
+      }
+    }
+
     function setMessage(message, type) {
       formMessage.textContent = message;
       formMessage.className = `form-message is-${type}`;
@@ -297,6 +311,7 @@
         authMode.value = tab.id === "registerModeBtn" ? "register" : "login";
         modeTabs.forEach((item) => item.classList.toggle("is-active", item === tab));
         formMessage.classList.add("hidden");
+        updateModeFields();
         updateSubmitText();
       });
     });
@@ -319,21 +334,25 @@
       event.preventDefault();
       const emailValue = email.value.trim();
       const passwordValue = password.value.trim();
+      const confirmPasswordValue = confirmPassword.value.trim();
+      const isRegister = authMode.value === "register";
       const role = roleInput.value;
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const emailIsValid = role === "teacher" && emailValue === "admin"
         ? true
         : emailPattern.test(emailValue);
+      const passwordMatches = !isRegister || passwordValue === confirmPasswordValue;
       let isValid = true;
 
       emailError.classList.toggle("hidden", emailIsValid);
       passwordError.classList.toggle("hidden", passwordValue.length >= 6);
+      confirmPasswordError.classList.toggle("hidden", passwordMatches);
 
-      if (!emailIsValid || passwordValue.length < 6) {
+      if (!emailIsValid || passwordValue.length < 6 || !passwordMatches) {
         isValid = false;
       }
 
-      if (authMode.value === "register" && emailValue === "admin") {
+      if (isRegister && emailValue === "admin") {
         setMessage("管理員帳號由系統初始化建立，請直接使用 Teacher 模式登入。", "error");
         return;
       }
@@ -363,6 +382,7 @@
     });
 
     updateSubmitText();
+    updateModeFields();
   }
 
   function initLogout() {

@@ -23,6 +23,7 @@ const detailsShortcut = document.getElementById("detailsShortcut");
 const algorithmTime = document.getElementById("algorithmTime");
 const algorithmSpace = document.getElementById("algorithmSpace");
 const algorithmStable = document.getElementById("algorithmStable");
+const backHomeLink = document.getElementById("backHomeLink");
 
 const algorithmMeta = {
   bubble: {
@@ -87,6 +88,59 @@ const algorithmMeta = {
   arr[j + 1] = current;
 }`,
   },
+  quick: {
+    title: "Quick Sort",
+    description: "選擇一個 pivot，把較小與較大的元素分到兩側，再遞迴排序左右區間。",
+    useCase: "適合情境：想觀察分治法與分割區間，平均效率高，是實務常見排序策略。",
+    tags: ["分治法", "Pivot 分割", "平均快速", "遞迴", "原地排序"],
+    complexity: {
+      time: "Best/Average O(n log n), Worst O(n²)",
+      space: "O(log n)",
+      stable: "No",
+    },
+    code: `function quickSort(arr, left, right) {
+  if (left >= right) return;
+
+  const pivotIndex = partition(arr, left, right);
+  quickSort(arr, left, pivotIndex - 1);
+  quickSort(arr, pivotIndex + 1, right);
+}`,
+  },
+  merge: {
+    title: "Merge Sort",
+    description: "先把資料不斷切半，排序小區間後再依序合併成完整的有序資料。",
+    useCase: "適合情境：理解穩定排序與分治法，資料量大時能維持穩定的 O(n log n)。",
+    tags: ["分治法", "穩定排序", "合併區間", "時間穩定", "需要額外空間"],
+    complexity: {
+      time: "Best/Average/Worst O(n log n)",
+      space: "O(n)",
+      stable: "Yes",
+    },
+    code: `function mergeSort(arr) {
+  if (arr.length <= 1) return arr;
+
+  const mid = Math.floor(arr.length / 2);
+  return merge(
+    mergeSort(arr.slice(0, mid)),
+    mergeSort(arr.slice(mid))
+  );
+}`,
+  },
+  heap: {
+    title: "Heap Sort",
+    description: "先建立最大堆，反覆把堆頂最大值移到尾端，再重新堆化剩下的區間。",
+    useCase: "適合情境：想觀察樹狀堆結構轉成陣列操作，且希望固定 O(n log n) 時間。",
+    tags: ["最大堆", "原地排序", "選出最大值", "不穩定", "時間穩定"],
+    complexity: {
+      time: "Best/Average/Worst O(n log n)",
+      space: "O(1)",
+      stable: "No",
+    },
+    code: `for (let end = arr.length - 1; end > 0; end--) {
+  [arr[0], arr[end]] = [arr[end], arr[0]];
+  heapify(arr, end, 0);
+}`,
+  },
 };
 
 let values = [];
@@ -96,6 +150,39 @@ let isPaused = false;
 let animationDelay = Number(speedRange.value);
 let dataSize = Number(sizeRange.value);
 let animationToken = 0;
+
+function safeParse(value) {
+  try {
+    return JSON.parse(value || "null");
+  } catch (error) {
+    return null;
+  }
+}
+
+function setupBackHomeLink() {
+  const session = safeParse(localStorage.getItem("sortVisualizerSession"))
+    || safeParse(localStorage.getItem("currentUser"))
+    || safeParse(sessionStorage.getItem("currentUser"));
+
+  if (!backHomeLink) {
+    return;
+  }
+
+  if (!session || !session.role) {
+    backHomeLink.href = "./index.html";
+    backHomeLink.textContent = "返回登入頁";
+    return;
+  }
+
+  if (session.role === "student") {
+    backHomeLink.href = "./pages/dashboard_student.html";
+    backHomeLink.textContent = "返回學生中心";
+    return;
+  }
+
+  backHomeLink.href = "./pages/dashboard_teacher.html";
+  backHomeLink.textContent = session.role === "admin" ? "返回管理首頁" : "返回教師中心";
+}
 
 function randomValues(length = dataSize) {
   return Array.from({ length }, () => Math.floor(Math.random() * 90) + 10);
@@ -363,6 +450,191 @@ async function insertionSortAnimation(token) {
   }
 }
 
+async function quickSortAnimation(token) {
+  const sorted = [];
+
+  async function partition(left, right) {
+    const pivot = values[right];
+    let storeIndex = left;
+
+    setStatus(`選擇索引 ${right} 的值 ${pivot} 作為 pivot`);
+    renderBars([right], sorted);
+    await sleepWithPause(animationDelay, token);
+
+    for (let i = left; i < right; i += 1) {
+      ensureActive(token);
+      setStatus(`比較索引 ${i} 與 pivot ${pivot}`);
+      renderBars([i, right], sorted);
+      await sleepWithPause(animationDelay, token);
+
+      if (values[i] < pivot) {
+        setStatus(`把較小值移到左側分割區`);
+        renderBars([], sorted, [i, storeIndex]);
+        await sleepWithPause(animationDelay, token);
+        [values[i], values[storeIndex]] = [values[storeIndex], values[i]];
+        storeIndex += 1;
+        renderBars([], sorted, [i, storeIndex - 1]);
+        await sleepWithPause(animationDelay, token);
+      }
+    }
+
+    setStatus(`將 pivot 放到最終位置 ${storeIndex}`);
+    renderBars([], sorted, [storeIndex, right]);
+    await sleepWithPause(animationDelay, token);
+    [values[storeIndex], values[right]] = [values[right], values[storeIndex]];
+    sorted.push(storeIndex);
+    renderBars([], sorted, [storeIndex]);
+    await sleepWithPause(animationDelay, token);
+    return storeIndex;
+  }
+
+  async function quickSort(left, right) {
+    ensureActive(token);
+
+    if (left > right) {
+      return;
+    }
+
+    if (left === right) {
+      sorted.push(left);
+      renderBars([], sorted);
+      await sleepWithPause(Math.max(60, animationDelay - 60), token);
+      return;
+    }
+
+    const pivotIndex = await partition(left, right);
+    await quickSort(left, pivotIndex - 1);
+    await quickSort(pivotIndex + 1, right);
+  }
+
+  await quickSort(0, values.length - 1);
+}
+
+async function mergeSortAnimation(token) {
+  async function mergeSort(left, right) {
+    ensureActive(token);
+
+    if (left >= right) {
+      return;
+    }
+
+    const mid = Math.floor((left + right) / 2);
+    await mergeSort(left, mid);
+    await mergeSort(mid + 1, right);
+
+    const leftPart = values.slice(left, mid + 1);
+    const rightPart = values.slice(mid + 1, right + 1);
+    let i = 0;
+    let j = 0;
+    let writeIndex = left;
+
+    setStatus(`合併索引 ${left} 到 ${right} 的區間`);
+
+    while (i < leftPart.length && j < rightPart.length) {
+      ensureActive(token);
+      const leftIndex = left + i;
+      const rightIndex = mid + 1 + j;
+      renderBars([leftIndex, rightIndex]);
+      await sleepWithPause(animationDelay, token);
+
+      if (leftPart[i] <= rightPart[j]) {
+        values[writeIndex] = leftPart[i];
+        i += 1;
+      } else {
+        values[writeIndex] = rightPart[j];
+        j += 1;
+      }
+
+      renderBars([writeIndex], [], [writeIndex]);
+      await sleepWithPause(animationDelay, token);
+      writeIndex += 1;
+    }
+
+    while (i < leftPart.length) {
+      ensureActive(token);
+      values[writeIndex] = leftPart[i];
+      renderBars([writeIndex], [], [writeIndex]);
+      await sleepWithPause(animationDelay, token);
+      i += 1;
+      writeIndex += 1;
+    }
+
+    while (j < rightPart.length) {
+      ensureActive(token);
+      values[writeIndex] = rightPart[j];
+      renderBars([writeIndex], [], [writeIndex]);
+      await sleepWithPause(animationDelay, token);
+      j += 1;
+      writeIndex += 1;
+    }
+
+    renderBars([], Array.from({ length: right - left + 1 }, (_, index) => left + index));
+    await sleepWithPause(Math.max(80, animationDelay - 40), token);
+  }
+
+  await mergeSort(0, values.length - 1);
+}
+
+async function heapSortAnimation(token) {
+  const sorted = [];
+
+  async function heapify(heapSize, rootIndex) {
+    let largest = rootIndex;
+    const left = rootIndex * 2 + 1;
+    const right = rootIndex * 2 + 2;
+
+    if (left < heapSize) {
+      setStatus(`比較父節點 ${rootIndex} 與左子節點 ${left}`);
+      renderBars([rootIndex, left], sorted);
+      await sleepWithPause(animationDelay, token);
+
+      if (values[left] > values[largest]) {
+        largest = left;
+      }
+    }
+
+    if (right < heapSize) {
+      setStatus(`比較目前最大值 ${largest} 與右子節點 ${right}`);
+      renderBars([largest, right], sorted);
+      await sleepWithPause(animationDelay, token);
+
+      if (values[right] > values[largest]) {
+        largest = right;
+      }
+    }
+
+    if (largest !== rootIndex) {
+      setStatus(`交換索引 ${rootIndex} 和 ${largest} 維持最大堆`);
+      renderBars([], sorted, [rootIndex, largest]);
+      await sleepWithPause(animationDelay, token);
+      [values[rootIndex], values[largest]] = [values[largest], values[rootIndex]];
+      renderBars([], sorted, [rootIndex, largest]);
+      await sleepWithPause(animationDelay, token);
+      await heapify(heapSize, largest);
+    }
+  }
+
+  for (let i = Math.floor(values.length / 2) - 1; i >= 0; i -= 1) {
+    ensureActive(token);
+    setStatus(`建立最大堆：調整索引 ${i}`);
+    await heapify(values.length, i);
+  }
+
+  for (let end = values.length - 1; end > 0; end -= 1) {
+    ensureActive(token);
+    setStatus(`把最大值移到索引 ${end}`);
+    renderBars([], sorted, [0, end]);
+    await sleepWithPause(animationDelay, token);
+    [values[0], values[end]] = [values[end], values[0]];
+    sorted.push(end);
+    renderBars([], sorted, [end]);
+    await sleepWithPause(animationDelay, token);
+    await heapify(end, 0);
+  }
+
+  sorted.push(0);
+}
+
 async function runAnimation() {
   if (isAnimating) {
     return;
@@ -379,8 +651,14 @@ async function runAnimation() {
       await bubbleSortAnimation(token);
     } else if (currentAlgorithm === "selection") {
       await selectionSortAnimation(token);
-    } else {
+    } else if (currentAlgorithm === "insertion") {
       await insertionSortAnimation(token);
+    } else if (currentAlgorithm === "quick") {
+      await quickSortAnimation(token);
+    } else if (currentAlgorithm === "merge") {
+      await mergeSortAnimation(token);
+    } else {
+      await heapSortAnimation(token);
     }
 
     ensureActive(token);
@@ -458,6 +736,7 @@ detailsShortcut.addEventListener("click", () => {
 });
 
 values = randomValues();
+setupBackHomeLink();
 updateSizeLabel();
 updateSpeedLabel();
 setAlgorithm(currentAlgorithm);

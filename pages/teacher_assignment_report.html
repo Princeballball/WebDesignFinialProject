@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作業成績報表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dashboard-page" data-required-role="teacher" data-allowed-roles="teacher admin">
+  <section id="authGuard" class="auth-guard hidden" aria-live="polite">
+    <div class="auth-guard-card">
+      <p class="dashboard-eyebrow">Access Required</p>
+      <h1>權限不足或尚未登入</h1>
+      <p id="authGuardMessage">這個頁面只開放教師帳號使用。</p>
+      <a class="primary-link" href="./index.html">返回登入頁</a>
+    </div>
+  </section>
+
+  <div id="dashboardContent" class="hidden">
+    <header class="dashboard-header">
+      <div>
+        <p class="dashboard-eyebrow">Reports</p>
+        <h1 id="reportTitle">作業成績報表</h1>
+        <p id="reportMeta" class="dashboard-subtitle">Loading...</p>
+      </div>
+      <div class="dashboard-actions">
+        <a id="backToAssignmentsLink" class="ghost-btn" href="./teacher_assignments.html">返回作業管理</a>
+        <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
+      </div>
+    </header>
+
+    <main class="assignment-report-layout">
+      <aside class="dashboard-card report-sidebar">
+        <div class="section-heading">
+          <div>
+            <p class="dashboard-eyebrow">Assignments</p>
+            <h2>選擇作業</h2>
+          </div>
+        </div>
+        <div id="reportAssignmentList" class="assignment-list"></div>
+      </aside>
+
+      <section id="reportContentPanel" class="dashboard-card report-content"></section>
+    </main>
+  </div>
+
+  <script src="../quizData.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/teacherAssignmentReport.js"></script>
+</body>
+</html>

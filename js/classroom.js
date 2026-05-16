@@ -435,8 +435,23 @@
     classrooms.forEach((classroom) => {
       const item = document.createElement("article");
       item.className = "class-item";
+      if (showManageButton) {
+        item.dataset.classroomId = classroom.id;
+        item.setAttribute("role", "button");
+        item.tabIndex = 0;
+        item.classList.toggle("is-selected", classroom.id === selectedClassroomId);
+        item.setAttribute("aria-pressed", String(classroom.id === selectedClassroomId));
+      }
       item.innerHTML = classroomMarkup(classroom, showManageButton);
       container.appendChild(item);
+    });
+  }
+
+  function updateTeacherClassroomCards() {
+    document.querySelectorAll("#teacherClassroomList .class-item[data-classroom-id]").forEach((item) => {
+      const isSelected = item.dataset.classroomId === selectedClassroomId;
+      item.classList.toggle("is-selected", isSelected);
+      item.setAttribute("aria-pressed", String(isSelected));
     });
   }
 
@@ -514,6 +529,8 @@
     if (select) {
       select.value = classroomId;
     }
+
+    updateTeacherClassroomCards();
 
     studentPanelTitle.textContent = classroom ? `${classroom.name} 學生名單` : "學生名單";
     assignmentPanelTitle.textContent = classroom ? `${classroom.name} 作業與成績` : "作業指派與成績";
@@ -733,6 +750,9 @@
               <option value="bubble">Bubble Sort</option>
               <option value="selection">Selection Sort</option>
               <option value="insertion">Insertion Sort</option>
+              <option value="quick">Quick Sort</option>
+              <option value="merge">Merge Sort</option>
+              <option value="heap">Heap Sort</option>
             </select>
           </label>
           <label>
@@ -970,13 +990,28 @@
     });
 
     list.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-classroom-id]");
+      const classroomItem = event.target.closest(".class-item[data-classroom-id]");
 
-      if (!button) {
+      if (!classroomItem) {
         return;
       }
 
-      await selectClassroom(button.dataset.classroomId);
+      await selectClassroom(classroomItem.dataset.classroomId);
+    });
+
+    list.addEventListener("keydown", async (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      const classroomItem = event.target.closest(".class-item[data-classroom-id]");
+
+      if (!classroomItem) {
+        return;
+      }
+
+      event.preventDefault();
+      await selectClassroom(classroomItem.dataset.classroomId);
     });
 
     studentsContainer.addEventListener("click", async (event) => {

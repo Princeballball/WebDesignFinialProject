@@ -31,57 +31,71 @@
     </header>
 
     <main class="dashboard-grid assignment-management-grid">
-      <section class="dashboard-card">
-        <div class="section-heading">
+      <section class="dashboard-card collapsible-card">
+        <button class="section-heading collapsible-card-toggle" type="button" aria-expanded="false" aria-controls="assignmentFormContent">
           <div>
             <p class="dashboard-eyebrow">Create / Edit</p>
             <h2 id="assignmentFormTitle">指派作業</h2>
           </div>
-        </div>
+          <span class="collapse-indicator">展開</span>
+        </button>
 
-        <form id="teacherAssignmentForm" class="stack-form assignment-form">
-          <input id="editingAssignmentId" type="hidden" />
-          <label>
-            <span>作業名稱</span>
-            <input id="assignmentTitleInput" type="text" placeholder="例如：Bubble Sort 小測驗" />
-          </label>
-          <label>
-            <span>演算法</span>
-            <select id="assignmentAlgorithmInput">
-              <option value="bubble">Bubble Sort</option>
-              <option value="selection">Selection Sort</option>
-              <option value="insertion">Insertion Sort</option>
-            </select>
-          </label>
-          <label>
-            <span>截止日期</span>
-            <input id="assignmentDueDateInput" type="date" />
-          </label>
-          <div class="dashboard-actions">
-            <button id="assignmentSubmitBtn" class="primary-btn" type="submit">指派作業</button>
-            <button id="cancelEditAssignmentBtn" class="ghost-btn hidden" type="button">取消修改</button>
-          </div>
-        </form>
-        <p id="teacherAssignmentMessage" class="dashboard-message hidden"></p>
+        <div id="assignmentFormContent" class="collapsible-card-content hidden">
+          <form id="teacherAssignmentForm" class="stack-form assignment-form">
+            <input id="editingAssignmentId" type="hidden" />
+            <label>
+              <span>作業名稱</span>
+              <input id="assignmentTitleInput" type="text" placeholder="例如：Bubble Sort 小測驗" />
+            </label>
+            <label>
+              <span>演算法</span>
+              <select id="assignmentAlgorithmInput">
+                <option value="bubble">Bubble Sort</option>
+                <option value="selection">Selection Sort</option>
+                <option value="insertion">Insertion Sort</option>
+                <option value="quick">Quick Sort</option>
+                <option value="merge">Merge Sort</option>
+                <option value="heap">Heap Sort</option>
+              </select>
+            </label>
+            <label>
+              <span>截止日期</span>
+              <input id="assignmentDueDateInput" type="date" />
+            </label>
+            <div class="dashboard-actions">
+              <button id="assignmentSubmitBtn" class="primary-btn" type="submit">指派作業</button>
+              <button id="cancelEditAssignmentBtn" class="ghost-btn hidden" type="button">取消修改</button>
+            </div>
+          </form>
+          <p id="teacherAssignmentMessage" class="dashboard-message hidden"></p>
+        </div>
       </section>
 
-      <section class="dashboard-card">
-        <div class="section-heading">
+      <section class="dashboard-card collapsible-card">
+        <button class="section-heading collapsible-card-toggle" type="button" aria-expanded="false" aria-controls="assignmentClassroomContent">
           <div>
             <p class="dashboard-eyebrow">Classroom</p>
             <h2 id="assignmentClassroomTitle">教室</h2>
           </div>
+          <span class="collapse-indicator">展開</span>
+        </button>
+        <div id="assignmentClassroomContent" class="collapsible-card-content hidden">
+          <div id="assignmentClassroomSummary" class="class-list"></div>
         </div>
-        <div id="assignmentClassroomSummary" class="class-list"></div>
       </section>
 
-      <section class="dashboard-card feature-card">
-        <div>
-          <p class="dashboard-eyebrow">Reports</p>
-          <h2>作業列表與成績分析</h2>
-          <p>查看繳交狀態、平均分數、最高分、題目答對率與學生分數。</p>
+      <section class="dashboard-card feature-card collapsible-card">
+        <button class="section-heading collapsible-card-toggle" type="button" aria-expanded="false" aria-controls="teacherAssignmentContent">
+          <div>
+            <p class="dashboard-eyebrow">Reports</p>
+            <h2>作業列表</h2>
+            <p>快速查看作業狀態；完整成績、題目答對率與學生分數。</p>
+          </div>
+          <span class="collapse-indicator">展開</span>
+        </button>
+        <div id="teacherAssignmentContent" class="collapsible-card-content hidden">
+          <div id="teacherAssignmentPanel" class="assignment-panel"></div>
         </div>
-        <div id="teacherAssignmentPanel" class="assignment-panel"></div>
       </section>
     </main>
   </div>
